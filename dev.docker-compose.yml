@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  live_reloading:
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    ports:
+      - 3000:3000
+    networks:
+      - networks-api
+    volumes:
+      - ./:/app
+    command: air
+    depends_on:
+      - db
+
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: akiira
+      POSTGRES_DB: line_log
+    ports:
+      - 5432:5432
+    networks:
+      - networks-api
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    networks:
+      - networks-api
+
+networks:
+  networks-api:
