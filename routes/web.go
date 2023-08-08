@@ -20,7 +20,7 @@ func Web() {
 	facades.Route().Get("/", userController.Show)
 
 	lineController := line.NewLineController()
-	facades.Route().Post("/webhook", lineController.MessageLine)
+	facades.Route().Post("/webhook", lineController.LineWebhookHandler)
 
 	facades.Route().Get("/testDB", lineController.TestDb)
 }

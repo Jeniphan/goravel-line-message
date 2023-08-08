@@ -30,5 +30,23 @@ func GenTable() {
 	db.AutoMigrate(
 		&models.Users{},
 	)
+	db.AutoMigrate(
+		&models.MessagesReceivedText{},
+	)
+	db.AutoMigrate(
+		&models.MessagesReceivedSticker{},
+	)
+	db.AutoMigrate(
+		&models.MessagesReceivedLocation{},
+	)
+	db.AutoMigrate(
+		&models.MessagesReceivedImage{},
+	)
+	db.AutoMigrate(
+		&models.MessagesReceivedAudio{},
+	)
+	db.AutoMigrate(
+		&models.RepliesMessage{},
+	)
 	DB = db
 }
