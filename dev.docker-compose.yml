@@ -40,7 +40,7 @@ services:
     restart: unless-stopped
     command: tunnel run
     environment:
-      - TUNNEL_TOKEN=eyJhIjoiZmZlMzU4ZTcwOTMyZTFhOTIyMTA5Nzk4NDNjODI4ZmQiLCJ0IjoiMzBlOTgwY2UtYTZiNS00ZDllLWIyNzgtY2U2N2VkMWM5NTdiIiwicyI6IlpqRmhNRFV5Tm1RdFpEazFOaTAwWkRVNExUZ3hNelV0WWpKa05tWTFPRGxrWVRKbCJ9
+      - TUNNEL_TOKEN=eyJhIjoiZmZlMzU4ZTcwOTMyZTFhOTIyMTA5Nzk4NDNjODI4ZmQiLCJ0IjoiZDZlNDQ5NTYtYmY1Yi00YjY3LWJjYWYtODhiNWMyYzhmZWMwIiwicyI6IlpHSTBNekV4WVRjdE5EVmlPUzAwTURjMExXRTJaV1F0TkdFNVlXWmxZVGRtTVdRNCJ9
     networks:
       - networks-api
 
