@@ -35,5 +35,14 @@ services:
     networks:
       - networks-api
 
+  cloudflared:
+    image: cloudflare/cloudflared
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=eyJhIjoiZmZlMzU4ZTcwOTMyZTFhOTIyMTA5Nzk4NDNjODI4ZmQiLCJ0IjoiMzBlOTgwY2UtYTZiNS00ZDllLWIyNzgtY2U2N2VkMWM5NTdiIiwicyI6IlpqRmhNRFV5Tm1RdFpEazFOaTAwWkRVNExUZ3hNelV0WWpKa05tWTFPRGxrWVRKbCJ9
+    networks:
+      - networks-api
+
 networks:
   networks-api:
