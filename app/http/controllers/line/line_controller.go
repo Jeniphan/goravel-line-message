@@ -62,7 +62,7 @@ func (r *LineController) LineWebhookHandler(ctx myHttp.Context) {
 					ctx.Response().Status(http.StatusInternalServerError)
 					return
 				}
-				handleRepliedMessage(bot, event.ReplyToken, "image", *imageId)
+				handleRepliedMessage(bot, event.ReplyToken, "image", *imageId, *userId)
 
 			case *linebot.TextMessage:
 				textId, err := handleTextMessage(message, userId)
@@ -70,7 +70,7 @@ func (r *LineController) LineWebhookHandler(ctx myHttp.Context) {
 					ctx.Response().Status(http.StatusInternalServerError)
 					return
 				}
-				handleRepliedMessage(bot, event.ReplyToken, "text", *textId)
+				handleRepliedMessage(bot, event.ReplyToken, "text", *textId, *userId)
 
 			case *linebot.StickerMessage:
 				stickerId, err := handleStickerMessage(message, userId)
@@ -78,7 +78,7 @@ func (r *LineController) LineWebhookHandler(ctx myHttp.Context) {
 					ctx.Response().Status(http.StatusInternalServerError)
 					return
 				}
-				handleRepliedMessage(bot, event.ReplyToken, "sticker", *stickerId)
+				handleRepliedMessage(bot, event.ReplyToken, "sticker", *stickerId, *userId)
 
 			case *linebot.LocationMessage:
 				locationId, err := handleLocationMessage(message, userId)
@@ -86,14 +86,14 @@ func (r *LineController) LineWebhookHandler(ctx myHttp.Context) {
 					ctx.Response().Status(http.StatusInternalServerError)
 					return
 				}
-				handleRepliedMessage(bot, event.ReplyToken, "location", *locationId)
+				handleRepliedMessage(bot, event.ReplyToken, "location", *locationId, *userId)
 			case *linebot.AudioMessage:
 				audioId, err := handleAudioMessage(bot, message, userId)
 				if err != nil {
 					ctx.Response().Status(http.StatusInternalServerError)
 					return
 				}
-				handleRepliedMessage(bot, event.ReplyToken, "audio", *audioId)
+				handleRepliedMessage(bot, event.ReplyToken, "audio", *audioId, *userId)
 			default:
 				// Handle other message types
 				// ...
@@ -150,13 +150,28 @@ func handleImageMessage(bot *linebot.Client, message *linebot.ImageMessage, user
 	MessageImage.ContentProvider = filePath
 	MessageImage.MessageLineID = message.ID
 	MessageImage.UserID = *userId
-	facades.Orm().Query().Create(&MessageImage)
-	err = facades.Orm().Query().FindOrFail(&MessageImage, "message_line_id=?", message.ID)
+	err = facades.Orm().Query().Create(&MessageImage)
 	if err != nil {
 		return nil, err
 	}
 
-	return &MessageImage.ID, nil
+	messageType := models.MessageTypes{MessageTypeSlug: "img"}
+	err = facades.Orm().Query().Find(&messageType)
+	if err != nil {
+		// Handle error
+		return nil, err
+	}
+
+	userMessageType := models.UserMessageTypes{}
+	userMessageType.MessageId = MessageImage.Id
+	userMessageType.UserID = MessageImage.UserID
+	userMessageType.MessageTypeID = messageType.Id
+	err = facades.Orm().Query().Create(&userMessageType)
+	if err != nil {
+		return nil, err
+	}
+
+	return &userMessageType.Id, nil
 }
 func handleTextMessage(message *linebot.TextMessage, userId *uint) (*uint, error) {
 	// Get text content
@@ -170,12 +185,23 @@ func handleTextMessage(message *linebot.TextMessage, userId *uint) (*uint, error
 		return nil, err
 	}
 
-	err = facades.Orm().Query().FindOrFail(&MessageText, "message_line_id=?", message.ID)
+	messageType := models.MessageTypes{MessageTypeSlug: "text"}
+	err = facades.Orm().Query().Find(&messageType)
+	if err != nil {
+		// Handle error
+		return nil, err
+	}
+
+	userMessageType := models.UserMessageTypes{}
+	userMessageType.MessageId = MessageText.Id
+	userMessageType.UserID = MessageText.UserID
+	userMessageType.MessageTypeID = messageType.Id
+	err = facades.Orm().Query().Create(&userMessageType)
 	if err != nil {
 		return nil, err
 	}
 
-	return &MessageText.Id, nil
+	return &userMessageType.Id, nil
 }
 
 func handleStickerMessage(message *linebot.StickerMessage, userId *uint) (*uint, error) {
@@ -194,7 +220,23 @@ func handleStickerMessage(message *linebot.StickerMessage, userId *uint) (*uint,
 		return nil, err
 	}
 
-	return &MessageSticker.Id, nil
+	messageType := models.MessageTypes{MessageTypeSlug: "sticker"}
+	err = facades.Orm().Query().Find(&messageType)
+	if err != nil {
+		// Handle error
+		return nil, err
+	}
+
+	userMessageType := models.UserMessageTypes{}
+	userMessageType.MessageId = MessageSticker.Id
+	userMessageType.UserID = MessageSticker.UserID
+	userMessageType.MessageTypeID = messageType.Id
+	err = facades.Orm().Query().Create(&userMessageType)
+	if err != nil {
+		return nil, err
+	}
+
+	return &userMessageType.Id, nil
 }
 
 func handleLocationMessage(message *linebot.LocationMessage, userId *uint) (*uint, error) {
@@ -213,7 +255,24 @@ func handleLocationMessage(message *linebot.LocationMessage, userId *uint) (*uin
 	if err != nil {
 		return nil, err
 	}
-	return &MessageLocation.Id, nil
+
+	messageType := models.MessageTypes{MessageTypeSlug: "locations"}
+	err = facades.Orm().Query().Find(&messageType)
+	if err != nil {
+		// Handle error
+		return nil, err
+	}
+
+	userMessageType := models.UserMessageTypes{}
+	userMessageType.MessageId = MessageLocation.Id
+	userMessageType.UserID = MessageLocation.UserID
+	userMessageType.MessageTypeID = messageType.Id
+	err = facades.Orm().Query().Create(&userMessageType)
+	if err != nil {
+		return nil, err
+	}
+
+	return &userMessageType.Id, nil
 }
 
 func handleAudioMessage(bot *linebot.Client, message *linebot.AudioMessage, userId *uint) (*uint, error) {
@@ -253,30 +312,45 @@ func handleAudioMessage(bot *linebot.Client, message *linebot.AudioMessage, user
 		// Handle error
 		return nil, err
 	}
-	return &MessageAudio.Id, nil
-}
 
-func handleRepliedMessage(bot *linebot.Client, replyToken string, typeMessage string, id uint) {
-	messageTextReplied := "Thank you. Your message type: " + typeMessage
-	var replyModel models.RepliesMessage
-	replyModel.MessageText = messageTextReplied
-
-	switch typeMessage {
-	case "text":
-		replyModel.MessagesReceivedTextID = &id
-	case "sticker":
-		replyModel.MessagesReceivedStickerID = &id
-	case "location":
-		replyModel.MessagesReceivedLocationID = &id
-	case "image":
-		replyModel.MessagesReceivedImageID = &id
-	case "audio":
-		replyModel.MessagesReceivedAudioID = &id
+	messageType := models.MessageTypes{MessageTypeSlug: "audio"}
+	err = facades.Orm().Query().Find(&messageType)
+	if err != nil {
+		// Handle error
+		return nil, err
+	}
+	userMessageType := models.UserMessageTypes{}
+	userMessageType.MessageId = MessageAudio.Id
+	userMessageType.UserID = MessageAudio.UserID
+	userMessageType.MessageTypeID = messageType.Id
+	err = facades.Orm().Query().Create(&userMessageType)
+	if err != nil {
+		return nil, err
 	}
 
-	facades.Orm().Query().Create(&replyModel)
+	return &userMessageType.Id, nil
+}
 
-	_, err := bot.ReplyMessage(replyToken, linebot.NewTextMessage(messageTextReplied)).Do()
+func handleRepliedMessage(bot *linebot.Client, replyToken string, typeMessage string, id uint, userId uint) {
+	messageTextReplied := "Thank you. Your message type: " + typeMessage
+	userAdmin := models.UserAdmins{UserName: "systems"}
+	err := facades.Orm().Query().Find(&userAdmin)
+	if err != nil {
+		return
+	}
+	var replyModel models.RepliesMessage
+	replyModel.MessageText = messageTextReplied
+	replyModel.UserAdminID = userAdmin.Id
+	replyModel.UserID = userId
+	replyModel.UserMessageTypesID = id
+
+	err = facades.Orm().Query().Create(&replyModel)
+	if err != nil {
+		log.Println("Save log replying Error:", err)
+		return
+	}
+
+	_, err = bot.ReplyMessage(replyToken, linebot.NewTextMessage(messageTextReplied)).Do()
 	if err != nil {
 		log.Println("Error replying:", err)
 		return

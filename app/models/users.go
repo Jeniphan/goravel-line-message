@@ -19,6 +19,7 @@ type Users struct {
 	MessagesReceivedLocation []*MessagesReceivedLocation `gorm:"foreignKey:UserID"`
 	MessagesReceivedImage    []*MessagesReceivedImage    `gorm:"foreignKey:UserID"`
 	MessagesReceivedAudio    []*MessagesReceivedAudio    `gorm:"foreignKey:UserID"`
+	UserMessageTypes         []*UserMessageTypes         `gorm:"foreignKey:UserID"`
 }
 
 type MessagesReceivedText struct {
@@ -90,22 +91,61 @@ type MessagesReceivedAudio struct {
 
 type RepliesMessage struct {
 	orm.Model
-	Id                         uint                      `gorm:"primaryKey" json:"id"`
-	MessageText                string                    `gorm:"size:255;message_text;column:message_text" json:"message_text"`
-	UserID                     uint                      `gorm:"column:user_id" json:"user_id"`
-	MessagesReceivedTextID     *uint                     `gorm:"column:messages_received_text_id;default:NULL" json:"messages_received_text_id"`
-	MessagesReceivedStickerID  *uint                     `gorm:"column:messages_received_sticker_id;default:NULL" json:"messages_received_sticker_id"`
-	MessagesReceivedLocationID *uint                     `gorm:"column:messages_received_location_id;default:NULL" json:"messages_received_location_id"`
-	MessagesReceivedImageID    *uint                     `gorm:"column:messages_received_image_id;default:NULL" json:"messages_received_image_id"`
-	MessagesReceivedAudioID    *uint                     `gorm:"column:messages_received_audio_id;default:NULL" json:"messages_received_audio_id"`
-	CreateAt                   carbon.DateTime           `gorm:"autoCreateTime;column:created_at" json:"created_at,omitempty"`
-	UpdatedAt                  carbon.DateTime           `gorm:"autoUpdateTime;column:updated_at" json:"updated_at,omitempty"`
-	DeletedAt                  gorm.DeletedAt            `gorm:"column:deleted_at" json:"deleted_at,omitempty"`
-	MessagesReceivedText       *MessagesReceivedText     `gorm:"foreignKey:MessagesReceivedTextID"`
-	MessagesReceivedSticker    *MessagesReceivedSticker  `gorm:"foreignKey:MessagesReceivedStickerID"`
-	MessagesReceivedLocation   *MessagesReceivedLocation `gorm:"foreignKey:MessagesReceivedLocationID"`
-	MessagesReceivedImage      *MessagesReceivedImage    `gorm:"foreignKey:MessagesReceivedImageID"`
-	MessagesReceivedAudio      *MessagesReceivedAudio    `gorm:"foreignKey:MessagesReceivedAudioID"`
+	Id                 uint              `gorm:"primaryKey" json:"id"`
+	MessageText        string            `gorm:"size:255;message_text;column:message_text" json:"message_text"`
+	UserID             uint              `gorm:"column:user_id" json:"user_id"`
+	CreateAt           carbon.DateTime   `gorm:"autoCreateTime;column:created_at" json:"created_at,omitempty"`
+	UpdatedAt          carbon.DateTime   `gorm:"autoUpdateTime;column:updated_at" json:"updated_at,omitempty"`
+	DeletedAt          gorm.DeletedAt    `gorm:"column:deleted_at" json:"deleted_at,omitempty"`
+	UserAdminID        uint              `gorm:"column:user_admin_id" json:"user_admin_id"`
+	UserMessageTypesID uint              `gorm:"column:user_message_type_id" json:"user_message_type_id"`
+	UserMessageTypes   *UserMessageTypes `gorm:"foreignKey:UserMessageTypesID"`
+}
+
+type UserMessageTypes struct {
+	orm.Model
+	Id             uint              `gorm:"primaryKey" json:"id"`
+	UserID         uint              `gorm:"column:user_id" json:"user_id"`
+	MessageId      uint              `gorm:"column:message_id" json:"message_id"`
+	MessageTypeID  uint              `gorm:"column:message_type_id" json:"message_type_id"`
+	CreateAt       carbon.DateTime   `gorm:"autoCreateTime;column:created_at" json:"created_at,omitempty"`
+	UpdatedAt      carbon.DateTime   `gorm:"autoUpdateTime;column:updated_at" json:"updated_at,omitempty"`
+	DeletedAt      gorm.DeletedAt    `gorm:"column:deleted_at" json:"deleted_at,omitempty"`
+	Users          *Users            `gorm:"foreignKey:UserID"`
+	MessageTypes   *MessageTypes     `gorm:"foreignKey:MessageTypeID"`
+	RepliesMessage []*RepliesMessage `gorm:"foreignKey:UserMessageTypesID"`
+}
+
+type MessageTypes struct {
+	orm.Model
+	Id               uint                `gorm:"primaryKey" json:"id"`
+	MessageTypeName  string              `gorm:"size:255;column:message_type_name" json:"message_type_name"`
+	MessageTypeSlug  string              `gorm:"size:255;column:message_type_slug" json:"message_type_slug"`
+	CreateAt         carbon.DateTime     `gorm:"autoCreateTime;column:created_at" json:"created_at,omitempty"`
+	UpdatedAt        carbon.DateTime     `gorm:"autoUpdateTime;column:updated_at" json:"updated_at,omitempty"`
+	DeletedAt        gorm.DeletedAt      `gorm:"column:deleted_at" json:"deleted_at,omitempty"`
+	UserMessageTypes []*UserMessageTypes `gorm:"foreignKey:MessageTypeID"`
+}
+
+type UserAdmins struct {
+	orm.Model
+	Id             uint              `gorm:"primaryKey" json:"id"`
+	UserName       string            `gorm:"size:255;column:user_name" json:"user_name"`
+	FirstName      string            `gorm:"size:255;column:first_name" json:"first_name"`
+	LastName       string            `gorm:"size:255;column:last_name" json:"last_name"`
+	Email          string            `gorm:"size:255;column:email" json:"email"`
+	RepliesMessage []*RepliesMessage `gorm:"foreignKey:UserAdminID"`
+	CreateAt       carbon.DateTime   `gorm:"autoCreateTime;column:created_at" json:"created_at,omitempty"`
+	UpdatedAt      carbon.DateTime   `gorm:"autoUpdateTime;column:updated_at" json:"updated_at,omitempty"`
+	DeletedAt      gorm.DeletedAt    `gorm:"column:deleted_at" json:"deleted_at,omitempty"`
+}
+
+func (m *MessageTypes) MessageType() string {
+	return "message_types"
+}
+
+func (u *UserMessageTypes) UserMessageTypes() string {
+	return "user_message_types"
 }
 
 func (r *Users) Users() string {
