@@ -27,13 +27,13 @@ services:
     networks:
       - networks-api
 
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - 8080:8080
-    networks:
-      - networks-api
+  # adminer:
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - 8080:8080
+  #   networks:
+  #     - networks-api
 
   cloudflared:
     image: cloudflare/cloudflared

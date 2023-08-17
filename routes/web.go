@@ -23,7 +23,11 @@ func Web() {
 	facades.Route().Get("/", userController.Show)
 
 	lineController := line.NewLineController()
-	facades.Route().Post("api/webhook", lineController.LineWebhookHandler)
+	facades.Route().Prefix("api/message").Group(func(route route.Route) {
+		route.Post("/webhook", lineController.LineWebhookHandler)
+		route.Post("/createLineConfig", lineController.CreateLineConfig)
+		route.Put("/updateLineConfig", lineController.UpdateLineConfig)
+	})
 
 	authController := line_auth.NewLineAuth()
 	facades.Route().Get("/auth/line", authController.LineLogin)
