@@ -23,7 +23,7 @@ func Web() {
 	facades.Route().Get("/", userController.Show)
 
 	lineController := line.NewLineController()
-	facades.Route().Prefix("api/message").Group(func(route route.Route) {
+	facades.Route().Prefix("message").Group(func(route route.Route) {
 		route.Post("/webhook", lineController.LineWebhookHandler)
 		route.Post("/createLineConfig", lineController.CreateLineConfig)
 		route.Put("/updateLineConfig", lineController.UpdateLineConfig)
