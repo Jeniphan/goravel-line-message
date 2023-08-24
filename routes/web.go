@@ -30,16 +30,13 @@ func Web() {
 	})
 
 	authController := line_auth.NewLineAuth()
-	facades.Route().Get("/auth/line", authController.LineLogin)
-	facades.Route().Prefix("api").Group(func(routeApiInGroup route.Route) {
-		routeApiInGroup.Prefix("auth").Group(func(routeAuth route.Route) {
-			routeAuth.Prefix("line").Group(func(routeAuthLine route.Route) {
-				routeAuthLine.Get("/callback", authController.LineLoginCallback)
-				routeAuthLine.Get("/refresh", authController.LineRefresh)
-				routeAuthLine.Get("/profile", authController.LineLoginProfile)
-				routeAuthLine.Get("/revoke", authController.LineRevoke)
-				routeAuthLine.Get("/verify", authController.LineVerify)
-			})
-		})
+	// facades.Route().Get("/auth/line", authController.LineLogin)
+	facades.Route().Prefix("auth/line").Group(func(routeApiInGroup route.Route) {
+		routeApiInGroup.Get("/", authController.LineLogin)
+		routeApiInGroup.Get("/callback", authController.LineLoginCallback)
+		routeApiInGroup.Get("/refresh", authController.LineRefresh)
+		routeApiInGroup.Get("/profile", authController.LineLoginProfile)
+		routeApiInGroup.Get("/revoke", authController.LineRevoke)
+		routeApiInGroup.Get("/verify", authController.LineVerify)
 	})
 }
